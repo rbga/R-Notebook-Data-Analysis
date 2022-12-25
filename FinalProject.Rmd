@@ -1,0 +1,403 @@
+---
+title: "Hate Crimes as recorded and analysed by the FBI, USA"
+author: "RBGA"
+date: December 22nd, 2022
+output: 
+  pdf_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+---
+
+#### RESEARCH TOPIC 
+This project proposal aims to analyze and annotate the research done by the FBI on their analysis of Hate Crime statistics across the United States of America for the year 2020, which was published on the FBI public database on 30th of Aug 2021. The motive of this research is to capture information about the types of bias that motivate crimes, the nature of the offenses, and some information about the victims and offenders.
+
+On April 23, 1990, Congress passed the Hate Crime Statistics Act, 28 U.S.C. § 534, which required the Attorney General to collect data “about crimes that manifest evidence of prejudice based on race, religion, sexual orientation, or ethnicity.” The Attorney General delegated the responsibilities of developing the procedures for implementing, collecting, and managing hate crime data to the Director of the FBI, who, in turn, assigned the tasks to the Uniform Crime Reporting (UCR) Program. Under the direction of the Attorney General and with the cooperation and assistance of many local and state law enforcement agencies, the UCR Program created a hate crime data collection to comply with the congressional mandate.
+
+This R Studio Markdown aims to analyse data from 2020 of FBI's Hate Crime Statistics with various key parameters as a control variable and defend a hypothesis that
+
+1. Most hate crimes with bias 'Race/Ethnicity/Ancestry' happened mostly at the target victim's place of residence the most, followed by Supermarkets to be the next. Minority people are not safe in their own houses and public essential places like supermarkets in the US of A. 
+2. Most hate crimes are targeted toward Black victims the highest in US of A while the second highest is not even a race, rather a broader classification called Sexual Orientation where the Victims have various Sexual Orientations. This infers that the criminals in America hates the one race - Black more than they hate an entire broader group of populous with various Sexual Orientations.
+3. Among juvenile, minors and kids, the hate crime is seriously directed toward Black Juveniles more than any other race present. With the second highest again not being another race but the entire victims of various sexual orientations, White race in USA commits the most range of hate crimes against any other race. The highest crimes are against other people and specifically Intimidation 
+4. Single Bias Incidents, Race Bias, African Bias are the leading bars showing which type of hate crimes are the highest
+5. More Juvenile Hate crime victims lead to more adult hate crime victims
+6. White race commits the most number of direct targeted hate crimes like Murder, Rape, Intimidation, followed by Black race being the second
+7. Mean value of Known offenders is 600+ and intimidation is one of the biggest repeat offense  
+8. Known Offenders cause the most number of hate crimes.
+
+
+In creating the program, the designers recognized hate crimes are not separate, distinct crimes; instead, they are traditional offenses motivated by the offender’s bias. (For example, an offender assaults a victim because of a bias against the victim’s race.) After much consideration, the developers agreed hate crime data could be derived by capturing the additional element of bias in those offenses already being reported to the UCR Program. Attaching the collection of hate crime statistics to the established UCR data collection procedures, they concluded, would fulfill the directives of the Hate Crime Statistics Act without placing an undue additional reporting burden on law enforcement.
+
+Hate Crime is an active problem in current fast paced Workforce society where the motives of the crime in retrospect with today’s ideals are plainly ridiculous. In the age where humanity has surpassed the Nuclear era and is well into the information era, hampering common public workforce from all around the world with baseless hate, racism and discrimination is something massively bizarre and counterproductive that our species are still facing. Coming from the perspective of an author, who is a person of color, this research stresses the importance of analysis of hate crime based on various parameters, to ensure systemic eradication of this barbaric baseless hate. Though the research attempted by FBI is satisfactory, it doesn’t exactly produce the right data points with which a potentially better organization or institution can better use to curb this problem. One strong suggestion would be to review those hate crimes on a much deeper scale, including potential factors such as the criminal’s mental history, childhood, past traumas, education level and more.
+
+
+### Step -1 Install Necessary Packages and Libraries
+
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+install.packages("tidyverse")
+install.packages("readxl")
+install.packages("car")
+install.packages("haven")
+install.packages("corrr")
+install.packages("janitor")
+install.packages("rstatix")
+install.packages("lmtest")
+install.packages ("ppcor")
+install.packages("tableone")
+install.packages("ggthemes")
+install.packages("stargazer")
+install.packages("ggrepel")
+install.packages("psych") 
+```
+### More
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+library(package = "tableone")
+library(car) # Load the library car so we can run leveneTest, install if needed 
+library(tidyverse)
+library(readxl) #to import excel files
+library(haven) #import files produced in other statistical s oftware
+library(corrr) #Includes functions to evaluate correlations within the tidyverse
+library(janitor) #To analyze cross-tabulation – chi-squared
+library(rstatix) #One of many packages used for t-tests
+library(lmtest) #to test for constant variance assumption
+library(ppcor) #to obtain partial correlations
+library(stargazer) #Produces summary and regression output formatted tables 
+library(ggrepel) #to add overlapping labels to our plots 
+library(ggthemes) #additional ggplot themes
+library(psych)
+```
+
+### As Our Data is a spreadsheet XLSX, lets install XLSX
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+install.packages("xlsx")
+library("xlsx")
+
+```
+### Now use read.xlsx to read sheets into R Objects. Use head to view created objects 
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+victims <- read.xlsx("Table_7_Victims_Offense_Type_by_Bias_Motivation_2020.xlsx", 1)
+```
+```{r}
+head(victims)
+```
+
+
+
+### More Reading and 'head'ing
+```{r}
+bias <- read.xlsx("Table_1_Incidents_Offenses_Victims_and_Known_Offenders_by_Bias_Motivation_2020.xlsx", 1)
+head(bias)
+```
+### More
+```{r}
+location <- read.xlsx("Table_10_Incidents_Bias_Motivation_by_Location_2020.xlsx", 1)
+head(location)
+```
+### More
+```{r}
+race <- read.xlsx("Table_3_Offenses_Known_Offenders_Race_and_Ethnicity_by_Offense_Type_2020.xlsx", 1)
+head(race)
+```
+### More
+```{r}
+vicincidents <- read.xlsx("Table_8_Incidents_Victim_Type_by_Bias_Motivation_2020.xlsx", 1)
+head(vicincidents)
+```
+### A Whole Lot More Reading and Heading
+```{r}
+table1 <- read.xlsx("Table_1_Incidents_Offenses_Victims_and_Known_Offenders_by_Bias_Motivation_2020.xlsx", 1)
+
+table2<-read.xlsx("Table_2_Incidents_Offenses_Victims_and_Known_Offenders_by_Offense_Type_2020.xlsx", 1)
+
+table3<-read.xlsx("Table_3_Offenses_Known_Offenders_Race_and_Ethnicity_by_Offense_Type_2020.xlsx", 1)
+
+table4<-read.xlsx("Table_4_Offenses_Offense_Type_by_Bias_Motivation_2020.xlsx", 1)
+
+table7<-read.xlsx("Table_7_Victims_Offense_Type_by_Bias_Motivation_2020.xlsx", 1)
+
+table8<-read.xlsx("Table_8_Incidents_Victim_Type_by_Bias_Motivation_2020.xlsx", 1)
+
+table9<-read.xlsx("Table_9_Known_Offenders_Known_Offenders_Race_Ethnicity_and_Age_2020.xlsx", 1)
+
+tablex<-read.xlsx("Table_10_Incidents_Bias_Motivation_by_Location_2020.xlsx", 1)
+
+table5<-read.xlsx("Table_5_Offenses_Known_Offenders_Race_and_Ethnicity_by_Bias_Motivation_2020.xlsx", 1)
+```
+
+### Now we use Barplot function to create a barplot with 'Race/Ethnicity/Ancestry' as control factor for various locations. This is a formatted bar graph
+
+From the graph we clearly see that most hate crimes with bias 'Race/Ethnicity/Ancestry' happened mostly at the target victim's place of residence the most, followed by Supermarkets to be the next. Minority people are not safe in their own houses and public essential places like supermarkets in the US of A. This is a demonstration of R's base barplot() function. This is from the location vs various biases data from the FBI in table 'location'.
+
+```{r, message=FALSE, warning=FALSE}
+barplot(location$Race..ethnicity..ancestry[2:47], 
+        names=location$Location[2:47], 
+        horiz = FALSE, 
+        col=c("green","red"), 
+        cex.names=0.7, 
+        las=2, 
+        main="Race Bias Crimes vs Locations", 
+        ylab = "Crimes")
+```
+
+Another barplot from object victims which has victims of different races based on different biases. From this plot it is evident that most hate crimes are targeted toward Black victims the highest in US of A while the second highest is not even a race, rather a broader classification called Sexual Orientation where the Victims have various Sexual Orientations. This infers that the criminals in Amercia hates the one race - Black more than they hate an entire broader group of populous with various Sexual Orientations.
+
+```{r, message=FALSE, warning=FALSE}
+barplot(victims$Total.victims1[4:43], 
+        names = victims$Bias.motivation[4:43], horiz=FALSE, 
+        cex.names=0.4, 
+        col=c("yellow","pink"), 
+        las=3, 
+        main="Total Hate Crime Victims per Race", 
+        ylab="Victims")
+```
+
+From the object 'Victims', a barplot with 'Total.number.of.juvenile.victims2' as the main variable is plotted against bias motivation. From the graph, the data shows that even amongst juvenile, minors and kids, the hate crime is seriously directed toward Black Juveniles more than any other race present. With the second highest again not being another race but the entire victims of various sexual orientations.
+
+```{r, message=FALSE, warning=FALSE}
+barplot(victims$Total.number.of.juvenile.victims2[4:43], 
+        names = victims$Bias.motivation[4:43], 
+        horiz=FALSE, 
+        cex.names=0.4,
+        col=c("black","red"), 
+        las=3, 
+        main="Total Hate Crime Juvenile Victims per Race", 
+        ylab="Juvenile Victims")
+```
+
+### Now let's extract data from object 'race' into Data Frame 'racetable' which will have the columns as shown below. Thereby removing unwanted random rows of gibberish data.
+
+```{r}
+racetable <- data.frame(race$White[2:17], 
+                        race$Asian[2:17], 
+                        race$Black.or.African.American[2:17], 
+                        race$American.Indian.or.Alaska.Native[2:17])
+
+colnames(racetable) <- c("White", "Asian", "Black", "Native Indian")
+head(racetable)
+```
+
+### We now plot a Stacked bar plot for various races for various hate crimes they have commited.
+
+This stacked bar plot shows that the white race in USA commits the most range of hate crimes against any other race. The highest crimes are against other people and specifically Intimidation. Oppression begins as a form of intimidation or bullying.
+
+```{r, message=FALSE, warning=FALSE}
+barplot(as.matrix(racetable), main = "Various Crimes per Race",
+        las = 1,
+        cex.names=1,
+        col = c("orange","red"),
+        beside = FALSE
+        )
+```
+
+We not plot a barplot for Known HAte Crime Offenders or Repeat Offenders for various hate crime offenses and the result shows that Single Bias Incidents, Race Bias, African Bias are the leading bars showing which type of hate crimes are the highest.
+
+```{r, message=FALSE, warning=FALSE}
+barplot(bias$Known.Offenders2,
+        names = bias$Bias.motivation,
+        col=c("black","blue"), 
+        cex.names=0.5, 
+        las=2, 
+        main="Repeat Hate crimes against various biases", )
+```
+
+### Lets load some more libraries
+
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+library(xlsx)           # for reading in Excel data
+library(dplyr)          # for data manipulation
+library(tidyr)          # for data manipulation
+library(magrittr)       # for easier syntax in one or two areas
+library(gridExtra)      # for generating the bin width comparison plot
+library(ggplot2)        # for generating the visualization
+```
+
+We now use ggplot() to plot a histogram and a geom_density() for the race data with White being the key variable. 
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(race[2:17, ], aes(x = White)) +
+        theme(axis.text.x = element_text(angle = 90, size = 5))+
+        geom_histogram(aes(y = after_stat(density)),binwidth = 200) +
+        geom_density(alpha = .2, fill = "antiquewhite3")
+```
+### We try to find the Linear Regression Model for the victims data between Adult Victims and Juvenile Victims.
+
+The summary functions returns the calculated linear regression for the above proposed model. The output returns back with the LM test results. We see - 
+
+Residuals
+Median is -17.87, meaning the predictions are not good for lower numbers
+
+Coefficients
+Y = MX + B
+Y = 9.26X + 31.8
+
+This shows that with increase in Juvenile Victims, Adult Victims are considerably increasing too. 
+
+The Pr value is <0.05 meaning the model is significant.
+```{r}
+juvymod <- lm(Total.number.of.adult.victims2 ~ Total.number.of.juvenile.victims2, data = victims)
+summary(juvymod)
+```
+### Lets load more packages
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+library(stargazer)
+library(ggthemes)
+```
+
+### A Stargazer result of our Linear Model
+
+F statistic is high indicating a relation between the two observed data points
+```{r, message=FALSE, warning=FALSE}
+
+stargazer(juvymod, type = "text", title = "Higher Juvenile Criminals Produce Higher Adult Criminals")
+```
+### We will use GGPLOT() to plot a Scatter Plot of Adult and Juvenile Victims
+```{r, message=FALSE, warning=FALSE}
+ggplot(data=victims, aes(Total.number.of.adult.victims2, Total.number.of.juvenile.victims2)) +
+  geom_point() +
+  theme_economist_white()
+```
+### We also add a regression line which is an indication and prediction of a direct correlation between the two data sets indicationg theat more Juvenile victims leads to more adult victims
+```{r, message=FALSE, warning=FALSE}
+ggplot(data=victims, aes(Total.number.of.adult.victims2, Total.number.of.juvenile.victims2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, size = 0.25)+
+  theme_stata()
+```
+### Lets now create a Linear Model for various crimes race wise for White and Black
+```{r}
+wbmod <- lm(table3$White[c(2:7)] ~ table3$Black.or.African.American[c(2:7)])
+summary(wbmod)
+```
+
+Another Model with Asians as an added control variable
+```{r}
+wbamod <- lm(table3$White[c(2:7)] ~ table3$Black.or.African.American[c(2:7)] + table3$Asian[c(2:7)])
+summary(wbamod)
+```
+
+Another model with Native Indians as added control variable for the Linear Model
+```{r}
+wbanmod <- lm(table3$White[c(2:7)] ~ table3$Black.or.African.American[c(2:7)] + table3$Asian[c(2:7)] + table3$American.Indian.or.Alaska.Native[c(2:7)])
+summary(wbanmod)
+```
+
+### Now lets do a Stargazer model for all these linear models above
+
+The f statistic is pretty far from 1 which indicates the alternative hypothesis is true, meaning there is a higher effect of hate crimes by white more than other races.
+```{r, message=FALSE, warning=FALSE}
+stargazer(wbanmod, type = "text", title = "Direct Crimes against victim of hate, race wise")
+```
+### Create a table from obejct with row and column range values and do a GGPLOT() for various races. This is the data which contains direct hate crimes against individuals like Murder, Rape and assault race wise.
+```{r, message=FALSE, warning=FALSE}
+t3d <- table3[2:7, 3:6]
+ggplot(data=t3d, aes(White, Black.or.African.American, American.Indian.or.Alaska.Native, Asian)) + 
+
+  geom_point() +
+
+  geom_smooth(method = "lm", se = FALSE, size = 0.25)+
+
+  theme_stata()
+
+```
+### Then do the ANOVA test
+
+From the above graph, it is clear that Black race has the second highest hate crimes committed after white race. The numbers are exponentially staggering with White being the highest, then nearly halved is black and so on. The ANOVA test comes back with results of the test which also indicates, that African American come up the second highest at perpetrating direct targetted hate crimes after White, which has the highest, as inferred from the F values
+```{r, message=FALSE, warning=FALSE}
+anova <- aov(t3d$White ~ t3d$Black.or.African.American + t3d$American.Indian.or.Alaska.Native + t3d$Asian)
+summary(anova)
+```
+### Lets Install more packages
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+install.packages("rstatix")
+library(rstatix) 
+```
+
+### From TAble1 data of offenses, find the mean of Known Offenders
+
+```{r}
+
+table1 %>%
+  summarize(mean_koff = mean(Known.Offenders2, na.rm = T))
+```
+
+Lets run a T - Test against the mean value 624 for all mu 500 and above. From the Statistic and p-value which is greater than alpha 0.05, meaning the null hypothesis is valid and the mean is true.
+
+```{r, message=FALSE, warning=FALSE}
+
+table1 %>%
+t_test(Known.Offenders2 ~ 1, mu = 500, detailed = TRUE)
+```
+CONCLUSION OF THE TEST
+The T Test for Known offenders and mean The P value is 0.61 > alpha - 0.05 meaning that the two variables are dependent on each other meaning that known offenders have the highest number of incidents inferring that most hate crimes are repeat offenses, meaning the null hypothesis is valid and the mean is true.
+
+
+### More libraries
+
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+install.packages("janitor")
+library(janitor)
+```
+
+### Let us now do a Chi Square Test for Known Offenders and incidents but as p value is greater than alpha, both data are independent
+
+```{r, message=FALSE, warning=FALSE}
+table1<-table1 %>%  drop_na() 
+table1 %>%   
+ tabyl(Incidents, Known.Offenders2)%>%
+chisq.test()
+```
+CONCLUSION OF THE TEST
+The Chi Square Test Test for Known offenders and Incidents. The P value is 0.19 > alpha - 0.05 meaning that the two variables are dependent on each other meaning that known offenders have the highest number of incidents inferring that most hate crimes are repeat offenses.
+
+
+### FInd the Correlation between known offenders and incidents. As the value is +ve with close to 1, we can say both data change in same direction proportionally.
+
+```{r}
+cor(table1$Known.Offenders2, table1$Incidents)
+```
+
+A T test for the two data sets returns back p value greater than alpha meaning the data are dependent.
+
+```{r}
+t.test(table1$Known.Offenders2, table1$Incidents, var.equal=TRUE)
+```
+CONCLUSION OF THE TEST
+The T Test for Known offenders and Incidents. The P value is 0.72 > alpha - 0.05 meaning that the two variables are dependent on each other meaning that known offenders have the hoghest number of incidents inferring that most hate crimes are repeat offenses.
+
+
+
+### More libraries
+
+```{r, results = FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+theme_set(theme_bw(16))
+```
+
+
+### Box plot for known offenders and various biases
+
+```{r, message=FALSE, warning=FALSE}
+table1 %>% 
+ggplot(aes(Bias.motivation, Known.Offenders2 )) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 1) + 
+  theme_economist() +
+  theme(axis.text.x = element_text(size=5, angle=90, hjust = 1)) +
+  labs( title= "Known Offenders in respect with various Biases") 
+  
+```
+CONCLUSION OF THE TEST
+This boxplot graph gives a clear vivid picture on the regular biases for various Knwon offenders. We see that aside from the total, Single Bias incidents are the highest followed by Race/Ethnicity biased hate crimes which is the second highest.
+
+
+# FINAL CONCLUSIONS
+
+This project aims to demonstrate the uses of R Studio in creating, developing and analysis of a structured data study with many various features, tests and more. The data set chosen is the 2020's FBI Hate Crime Statistics data set of USA with various races, Biases, locations and more. Through various analysis and tests, a defense on hypothesis that 
+1. Most hate crimes with bias 'Race/Ethnicity/Ancestry' happened mostly at the target victim's place of residence the most, followed by Supermarkets to be the next. Minority people are not safe in their own houses and public essential places like supermarkets in the US of A. 
+2. Most hate crimes are targeted toward Black victims the highest in US of A while the second highest is not even a race, rather a broader classification called Sexual Orientation where the Victims have various Sexual Orientations. This infers that the criminals in America hates the one race - Black more than they hate an entire broader group of populous with various Sexual Orientations.
+3. Among juvenile, minors and kids, the hate crime is seriously directed toward Black Juveniles more than any other race present. With the second highest again not being another race but the entire victims of various sexual orientations, White race in USA commits the most range of hate crimes against any other race. The highest crimes are against other people and specifically Intimidation 
+4. Single Bias Incidents, Race Bias, African Bias are the leading bars showing which type of hate crimes are the highest
+5. More Juvenile Hate crime victims lead to more adult hate crime victims
+6. White race commits the most number of direct targeted hate crimes like Murder, Rape, Intimidation, followed by Black race being the second
+7. Mean value of Known offenders is 600+ and intimidation is one of the biggest repeat offense  
+8. Known Offenders cause the most number of hate crimes.
