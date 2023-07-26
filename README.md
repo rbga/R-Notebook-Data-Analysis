@@ -1,7 +1,5 @@
 # Hate Crimes as Recorded and Analyzed by the FBI, USA
 
-![Hate Crimes](hate_crimes.jpg)
-
 ## Introduction
 
 This project proposal aims to analyze and annotate the research done by the FBI on their analysis of Hate Crime statistics across the United States of America for the year 2020. The data was published on the FBI public database on August 30th, 2021. The motive of this research is to capture information about the types of bias that motivate crimes, the nature of the offenses, and some information about the victims and offenders.
