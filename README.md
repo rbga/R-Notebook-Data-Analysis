@@ -1,5 +1,5 @@
 # Hate Crimes as Recorded and Analyzed by the FBI, USA
-<img src="https://github.com/rbga/RNotebookDataAnalysis/assets/75168756/9770d4ad-6c06-4f70-9819-0e19ba75c8bd" alt="Image Alt Text" width="500" height="400">
+![image](https://github.com/rbga/RNotebookDataAnalysis/assets/75168756/9503da06-7afb-483c-967e-54dc24b97ca8)
 
 ## Introduction
 
